@@ -9,6 +9,12 @@
 :root {
   --bg:#121212; --text:#fff; --btn:#333;
 }
+
+body.light {
+  --bg:#ffffff;
+  --text:#000000;
+  --btn:#e0e0e0;
+}
 body{
   margin:0; background:var(--bg); color:var(--text);
   font-family:sans-serif;
@@ -65,6 +71,11 @@ function update(){
   const elapsed = running ? baseElapsed + (now()-startTime) : baseElapsed;
   document.getElementById('time').textContent = format(elapsed);
   localStorage.setItem('time', elapsed);
+
+  // 10分(600000ms)超えたらライトモード
+  if(elapsed >= 600000){
+    document.body.classList.add('light');
+  }
 }
 
 function toggle(){
@@ -95,6 +106,7 @@ function resetAll(){
   count=0;
   localStorage.setItem('time',0);
   localStorage.setItem('count',0);
+  document.body.classList.remove('light');
   update(); updateCounter();
 }
 
