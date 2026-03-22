@@ -7,12 +7,6 @@
   <link rel="icon" href="icon.png">
   <style>
     :root {
-      --bg: #ffffff;
-      --text: #000000;
-      --btn: #e0e0e0;
-    }
-
-    body.dark {
       --bg: #121212;
       --text: #ffffff;
       --btn: #333333;
@@ -32,25 +26,19 @@
 
     h1 { margin-bottom: 10px; }
 
-    .container {
-      text-align: center;
-    }
+    .container { text-align: center; }
 
     button {
       margin: 5px;
       padding: 10px 20px;
       border: none;
       background: var(--btn);
+      color: white;
       cursor: pointer;
       border-radius: 8px;
     }
 
-    .time {
-      font-size: 2em;
-      margin: 10px 0;
-    }
-
-    .counter {
+    .time, .counter {
       font-size: 2em;
       margin: 10px 0;
     }
@@ -59,7 +47,7 @@
 <body>
   <div class="container">
     <h1>⏱ ストップウォッチ</h1>
-    <div class="time" id="time">00:00:00</div>
+    <div class="time" id="time">00:00:00.00</div>
     <button onclick="start()">開始</button>
     <button onclick="stop()">停止</button>
     <button onclick="reset()">リセット</button>
@@ -69,61 +57,82 @@
     <button onclick="increment()">＋</button>
     <button onclick="decrement()">－</button>
     <button onclick="resetCounter()">リセット</button>
-
-    <h1>🌙 ダークモード</h1>
-    <button onclick="toggleDarkMode()">切り替え</button>
   </div>
 
   <script>
+    // ===== ストップウォッチ =====
     let timer = null;
-    let seconds = 0;
+    let startTime = 0;
+    let elapsed = 0;
 
-    function formatTime(sec) {
-      const h = String(Math.floor(sec / 3600)).padStart(2, '0');
-      const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
-      const s = String(sec % 60).padStart(2, '0');
-      return `${h}:${m}:${s}`;
+    function formatTime(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+      const s = String(totalSeconds % 60).padStart(2, '0');
+      const cs = String(Math.floor((ms % 1000) / 10)).padStart(2, '0'); // コンマ秒
+      return `${h}:${m}:${s}.${cs}`;
+    }
+
+    function updateDisplay() {
+      const now = Date.now();
+      const current = elapsed + (timer ? now - startTime : 0);
+      document.getElementById('time').textContent = formatTime(current);
+      localStorage.setItem('stopwatch', current);
     }
 
     function start() {
       if (timer) return;
-      timer = setInterval(() => {
-        seconds++;
-        document.getElementById('time').textContent = formatTime(seconds);
-      }, 1000);
+      startTime = Date.now();
+      timer = setInterval(updateDisplay, 10);
     }
 
     function stop() {
+      if (!timer) return;
+      elapsed += Date.now() - startTime;
       clearInterval(timer);
       timer = null;
+      localStorage.setItem('stopwatch', elapsed);
     }
 
     function reset() {
-      stop();
-      seconds = 0;
-      document.getElementById('time').textContent = "00:00:00";
+      clearInterval(timer);
+      timer = null;
+      elapsed = 0;
+      document.getElementById('time').textContent = "00:00:00.00";
+      localStorage.setItem('stopwatch', 0);
     }
 
-    let count = 0;
+    // ===== カウンター =====
+    let count = Number(localStorage.getItem('counter')) || 0;
+
+    function updateCounter() {
+      document.getElementById('counter').textContent = count;
+      localStorage.setItem('counter', count);
+    }
 
     function increment() {
       count++;
-      document.getElementById('counter').textContent = count;
+      updateCounter();
     }
 
     function decrement() {
       count--;
-      document.getElementById('counter').textContent = count;
+      updateCounter();
     }
 
     function resetCounter() {
       count = 0;
-      document.getElementById('counter').textContent = count;
+      updateCounter();
     }
 
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark');
-    }
+    // ===== 初期化（リロード対応） =====
+    window.onload = () => {
+      const savedTime = Number(localStorage.getItem('stopwatch')) || 0;
+      elapsed = savedTime;
+      document.getElementById('time').textContent = formatTime(savedTime);
+      updateCounter();
+    };
   </script>
 </body>
 </html>
