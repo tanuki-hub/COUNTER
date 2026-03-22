@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ストップウォッチ & カウンター</title>
+  <link rel="icon" href="icon.png">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #000000;
+      --btn: #e0e0e0;
+    }
+
+    body.dark {
+      --bg: #121212;
+      --text: #ffffff;
+      --btn: #333333;
+    }
+
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    h1 { margin-bottom: 10px; }
+
+    .container {
+      text-align: center;
+    }
+
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      border: none;
+      background: var(--btn);
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    .time {
+      font-size: 2em;
+      margin: 10px 0;
+    }
+
+    .counter {
+      font-size: 2em;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⏱ ストップウォッチ</h1>
+    <div class="time" id="time">00:00:00</div>
+    <button onclick="start()">開始</button>
+    <button onclick="stop()">停止</button>
+    <button onclick="reset()">リセット</button>
+
+    <h1>🔢 カウンター</h1>
+    <div class="counter" id="counter">0</div>
+    <button onclick="increment()">＋</button>
+    <button onclick="decrement()">－</button>
+    <button onclick="resetCounter()">リセット</button>
+
+    <h1>🌙 ダークモード</h1>
+    <button onclick="toggleDarkMode()">切り替え</button>
+  </div>
+
+  <script>
+    let timer = null;
+    let seconds = 0;
+
+    function formatTime(sec) {
+      const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+      const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    function start() {
+      if (timer) return;
+      timer = setInterval(() => {
+        seconds++;
+        document.getElementById('time').textContent = formatTime(seconds);
+      }, 1000);
+    }
+
+    function stop() {
+      clearInterval(timer);
+      timer = null;
+    }
+
+    function reset() {
+      stop();
+      seconds = 0;
+      document.getElementById('time').textContent = "00:00:00";
+    }
+
+    let count = 0;
+
+    function increment() {
+      count++;
+      document.getElementById('counter').textContent = count;
+    }
+
+    function decrement() {
+      count--;
+      document.getElementById('counter').textContent = count;
+    }
+
+    function resetCounter() {
+      count = 0;
+      document.getElementById('counter').textContent = count;
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+    }
+  </script>
+</body>
+</html>
