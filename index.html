@@ -1,138 +1,108 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ストップウォッチ & カウンター</title>
-  <link rel="icon" href="icon.png">
-  <style>
-    :root {
-      --bg: #121212;
-      --text: #ffffff;
-      --btn: #333333;
-    }
-
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      flex-direction: column;
-    }
-
-    h1 { margin-bottom: 10px; }
-
-    .container { text-align: center; }
-
-    button {
-      margin: 5px;
-      padding: 10px 20px;
-      border: none;
-      background: var(--btn);
-      color: white;
-      cursor: pointer;
-      border-radius: 8px;
-    }
-
-    .time, .counter {
-      font-size: 2em;
-      margin: 10px 0;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>統合ストップウォッチ & カウンター</title>
+<link rel="icon" href="icon.png">
+<style>
+:root {
+  --bg:#121212; --text:#fff; --btn:#333;
+}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:sans-serif;
+  display:flex; justify-content:center; align-items:center;
+  height:100vh;
+}
+.container{
+  width:90vw; max-width:600px; text-align:center;
+}
+.display{
+  font-size:clamp(2rem,6vw,3.5rem);
+  margin:20px 0;
+}
+button{
+  font-size:clamp(1rem,3vw,1.5rem);
+  padding:15px 20px;
+  margin:8px;
+  border:none; border-radius:12px;
+  background:var(--btn); color:#fff;
+}
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>⏱ ストップウォッチ</h1>
-    <div class="time" id="time">00:00:00.00</div>
-    <button onclick="start()">開始</button>
-    <button onclick="stop()">停止</button>
-    <button onclick="reset()">リセット</button>
+<div class="container">
+  <div class="display" id="time">00:00:00.00</div>
+  <div class="display" id="counter">0</div>
 
-    <h1>🔢 カウンター</h1>
-    <div class="counter" id="counter">0</div>
+  <div>
+    <button onclick="toggle()">▶ / ⏸</button>
     <button onclick="increment()">＋</button>
     <button onclick="decrement()">－</button>
-    <button onclick="resetCounter()">リセット</button>
+    <button onclick="resetAll()">リセット</button>
   </div>
+</div>
 
-  <script>
-    // ===== ストップウォッチ =====
-    let timer = null;
-    let startTime = 0;
-    let elapsed = 0;
+<script>
+// ===== 時間（実時間ベース） =====
+let running=false;
+let startTime=0;
+let baseElapsed=Number(localStorage.getItem('time'))||0;
 
-    function formatTime(ms) {
-      const totalSeconds = Math.floor(ms / 1000);
-      const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-      const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-      const s = String(totalSeconds % 60).padStart(2, '0');
-      const cs = String(Math.floor((ms % 1000) / 10)).padStart(2, '0'); // コンマ秒
-      return `${h}:${m}:${s}.${cs}`;
-    }
+function now(){ return Date.now(); }
 
-    function updateDisplay() {
-      const now = Date.now();
-      const current = elapsed + (timer ? now - startTime : 0);
-      document.getElementById('time').textContent = formatTime(current);
-      localStorage.setItem('stopwatch', current);
-    }
+function format(ms){
+  const s=Math.floor(ms/1000);
+  const h=String(Math.floor(s/3600)).padStart(2,'0');
+  const m=String(Math.floor((s%3600)/60)).padStart(2,'0');
+  const sec=String(s%60).padStart(2,'0');
+  const cs=String(Math.floor((ms%1000)/10)).padStart(2,'0');
+  return `${h}:${m}:${sec}.${cs}`;
+}
 
-    function start() {
-      if (timer) return;
-      startTime = Date.now();
-      timer = setInterval(updateDisplay, 10);
-    }
+function update(){
+  const elapsed = running ? baseElapsed + (now()-startTime) : baseElapsed;
+  document.getElementById('time').textContent = format(elapsed);
+  localStorage.setItem('time', elapsed);
+}
 
-    function stop() {
-      if (!timer) return;
-      elapsed += Date.now() - startTime;
-      clearInterval(timer);
-      timer = null;
-      localStorage.setItem('stopwatch', elapsed);
-    }
+function toggle(){
+  if(running){
+    baseElapsed += now()-startTime;
+    running=false;
+  }else{
+    startTime=now();
+    running=true;
+  }
+}
 
-    function reset() {
-      clearInterval(timer);
-      timer = null;
-      elapsed = 0;
-      document.getElementById('time').textContent = "00:00:00.00";
-      localStorage.setItem('stopwatch', 0);
-    }
+// ===== カウンター =====
+let count=Number(localStorage.getItem('count'))||0;
 
-    // ===== カウンター =====
-    let count = Number(localStorage.getItem('counter')) || 0;
+function updateCounter(){
+  document.getElementById('counter').textContent=count;
+  localStorage.setItem('count',count);
+}
 
-    function updateCounter() {
-      document.getElementById('counter').textContent = count;
-      localStorage.setItem('counter', count);
-    }
+function increment(){ count++; updateCounter(); }
+function decrement(){ count--; updateCounter(); }
 
-    function increment() {
-      count++;
-      updateCounter();
-    }
+// ===== リセット =====
+function resetAll(){
+  running=false;
+  baseElapsed=0;
+  count=0;
+  localStorage.setItem('time',0);
+  localStorage.setItem('count',0);
+  update(); updateCounter();
+}
 
-    function decrement() {
-      count--;
-      updateCounter();
-    }
-
-    function resetCounter() {
-      count = 0;
-      updateCounter();
-    }
-
-    // ===== 初期化（リロード対応） =====
-    window.onload = () => {
-      const savedTime = Number(localStorage.getItem('stopwatch')) || 0;
-      elapsed = savedTime;
-      document.getElementById('time').textContent = formatTime(savedTime);
-      updateCounter();
-    };
-  </script>
+// ===== 初期化 =====
+setInterval(update,10);
+window.onload=()=>{
+  update(); updateCounter();
+};
+</script>
 </body>
 </html>
