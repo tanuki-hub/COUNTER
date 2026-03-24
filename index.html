@@ -6,34 +6,32 @@
 <title>統合ストップウォッチ & カウンター</title>
 <link rel="icon" href="icon.png">
 <style>
-:root {
-  --bg:#121212; --text:#fff; --btn:#333;
-}
-
-body.light {
-  --bg:#ffffff;
-  --text:#000000;
-  --btn:#e0e0e0;
-}
+:root{ --bg:#121212; --text:#fff; --btn:#333; }
+body.light{ --bg:#fff; --text:#000; --btn:#e0e0e0; }
 body{
   margin:0; background:var(--bg); color:var(--text);
-  font-family:sans-serif;
-  display:flex; justify-content:center; align-items:center;
-  height:100vh;
+  font-family:sans-serif; display:flex; justify-content:center; align-items:center; height:100vh;
 }
-.container{
-  width:90vw; max-width:600px; text-align:center;
-}
-.display{
-  font-size:clamp(4rem,12vw,7rem);
-  margin:20px 0;
-}
+.container{ width:90vw; max-width:700px; text-align:center; position:relative; }
+.display{ font-size:clamp(4rem,12vw,7rem); margin:20px 0; }
 button{
-  font-size:clamp(1rem,3vw,1.5rem);
-  padding:15px 20px;
-  margin:8px;
-  border:none; border-radius:12px;
-  background:var(--btn); color:#fff;
+  font-size:clamp(1rem,3vw,1.5rem); padding:15px 20px; margin:8px;
+  border:none; border-radius:12px; background:var(--btn); color:#fff;
+}
+
+/* ===== 右側目盛り ===== */
+.ruler{
+  position:absolute; right:-60px; top:0; bottom:0;
+  width:60px; display:flex; align-items:center; justify-content:center;
+}
+.scale{
+  position:relative; height:80%; width:20px; background:#555; border-radius:10px;
+}
+.tick{
+  position:absolute; left:100%; margin-left:5px; font-size:10px;
+}
+.handle{
+  position:absolute; left:-5px; width:30px; height:10px; background:#fff; border-radius:5px; cursor:pointer;
 }
 </style>
 </head>
@@ -48,13 +46,18 @@ button{
     <button onclick="decrement()">－</button>
     <button onclick="resetAll()">リセット</button>
   </div>
+
+  <div class="ruler">
+    <div class="scale" id="scale"></div>
+  </div>
 </div>
 
 <script>
-// ===== 時間（実時間ベース） =====
+// ===== 時間 =====
 let running=false;
 let startTime=0;
 let baseElapsed=Number(localStorage.getItem('time'))||0;
+let threshold=Number(localStorage.getItem('threshold'))||600000; // デフォ10分
 
 function now(){ return Date.now(); }
 
@@ -72,48 +75,81 @@ function update(){
   document.getElementById('time').textContent = format(elapsed);
   localStorage.setItem('time', elapsed);
 
-  // 10分(600000ms)超えたらライトモード
-  if(elapsed >= 600000){
+  if(elapsed >= threshold){
     document.body.classList.add('light');
   }
 }
 
 function toggle(){
-  if(running){
-    baseElapsed += now()-startTime;
-    running=false;
-  }else{
-    startTime=now();
-    running=true;
-  }
+  if(running){ baseElapsed += now()-startTime; running=false; }
+  else{ startTime=now(); running=true; }
 }
 
 // ===== カウンター =====
 let count=Number(localStorage.getItem('count'))||0;
-
 function updateCounter(){
   document.getElementById('counter').textContent=count;
   localStorage.setItem('count',count);
 }
-
 function increment(){ count++; updateCounter(); }
 function decrement(){ count--; updateCounter(); }
 
 // ===== リセット =====
 function resetAll(){
-  running=false;
-  baseElapsed=0;
-  count=0;
+  running=false; baseElapsed=0; count=0; threshold=600000;
   localStorage.setItem('time',0);
   localStorage.setItem('count',0);
+  localStorage.setItem('threshold',threshold);
   document.body.classList.remove('light');
+  setHandleFromThreshold();
   update(); updateCounter();
 }
+
+// ===== 目盛り =====
+const scale=document.getElementById('scale');
+const maxMin=20; // 0〜20分
+
+// 目盛り描画
+for(let i=0;i<=maxMin;i++){
+  const t=document.createElement('div');
+  t.className='tick';
+  t.style.bottom=(i/maxMin*100)+'%';
+  t.textContent=i+'m';
+  scale.appendChild(t);
+}
+
+// ハンドル
+const handle=document.createElement('div');
+handle.className='handle';
+scale.appendChild(handle);
+
+function setHandleFromThreshold(){
+  const min=threshold/60000;
+  handle.style.bottom=(min/maxMin*100)+'%';
+}
+
+function updateThresholdFromPos(y){
+  const rect=scale.getBoundingClientRect();
+  let ratio=(rect.bottom-y)/rect.height;
+  ratio=Math.max(0,Math.min(1,ratio));
+  const min=Math.round(ratio*maxMin);
+  threshold=min*60000;
+  localStorage.setItem('threshold',threshold);
+  setHandleFromThreshold();
+}
+
+// pointer操作（PC/スマホ対応）
+let dragging=false;
+handle.addEventListener('pointerdown',()=>dragging=true);
+window.addEventListener('pointerup',()=>dragging=false);
+window.addEventListener('pointermove',(e)=>{
+  if(dragging) updateThresholdFromPos(e.clientY);
+});
 
 // ===== 初期化 =====
 setInterval(update,10);
 window.onload=()=>{
-  update(); updateCounter();
+  update(); updateCounter(); setHandleFromThreshold();
 };
 </script>
 </body>
