@@ -2,8 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>統合ストップウォッチ & カウンター</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ST&C</title>
 <link rel="icon" href="icon.png">
 <style>
 :root{ --bg:#121212; --text:#fff; --btn:#333; }
@@ -117,7 +117,7 @@ const scale=document.getElementById('scale');
 const maxMin=20; // 0〜20分
 
 // 目盛り描画
-for(let i=0;i<=maxMin;i++){
+for(let i=1;i<=maxMin;i++){
   const t=document.createElement('div');
   t.className='tick';
   t.style.bottom=(i/maxMin*100)+'%';
@@ -158,6 +158,13 @@ setInterval(update,10);
 window.onload=()=>{
   update(); updateCounter(); setHandleFromThreshold();
 };
+// 右クリック禁止
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// スクロール禁止
+document.addEventListener('wheel', e => e.preventDefault(), { passive:false });
+document.addEventListener('touchmove', e => e.preventDefault(), { passive:false });
+
 </script>
 </body>
 </html>
