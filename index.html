@@ -114,7 +114,7 @@ function resetAll(){
 
 // ===== 目盛り =====
 const scale=document.getElementById('scale');
-const maxMin=20; // 0〜20分
+const maxMin=20; // 1〜20分（0は使わない）
 
 // 目盛り描画
 for(let i=1;i<=maxMin;i++){
@@ -139,7 +139,11 @@ function updateThresholdFromPos(y){
   const rect=scale.getBoundingClientRect();
   let ratio=(rect.bottom-y)/rect.height;
   ratio=Math.max(0,Math.min(1,ratio));
-  const min=Math.round(ratio*maxMin);
+  let min=Math.round(ratio*maxMin);
+
+  // 0mは使わない → 最低1分にする
+  if(min < 1) min = 1;
+
   threshold=min*60000;
   localStorage.setItem('threshold',threshold);
   setHandleFromThreshold();
@@ -147,10 +151,19 @@ function updateThresholdFromPos(y){
 
 // pointer操作（PC/スマホ対応）
 let dragging=false;
-handle.addEventListener('pointerdown',()=>dragging=true);
+handle.addEventListener('pointerdown',(e)=>{
+  dragging=true;
+  updateThresholdFromPos(e.clientY);
+});
 window.addEventListener('pointerup',()=>dragging=false);
 window.addEventListener('pointermove',(e)=>{
   if(dragging) updateThresholdFromPos(e.clientY);
+});
+
+// バークリックでも移動
+scale.addEventListener('pointerdown',(e)=>{
+  dragging=true;
+  updateThresholdFromPos(e.clientY);
 });
 
 // ===== 初期化 =====
