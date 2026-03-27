@@ -77,14 +77,19 @@ function format(ms){
   return `${h}:${m}:${sec}.${cs}`;
 }
 
+function getElapsed(){
+  return running ? baseElapsed + (now()-startTime) : baseElapsed;
+}
+
 function update(){
-  const elapsed = running ? baseElapsed + (now()-startTime) : baseElapsed;
+  const elapsed = getElapsed();
   document.getElementById('time').textContent = format(elapsed);
   localStorage.setItem('time', elapsed);
 
   if(elapsed >= threshold){
     document.body.classList.add('light');
   }
+}
 }
 
 function toggle(){
@@ -141,12 +146,17 @@ function updateThresholdFromPos(y){
   ratio=Math.max(0,Math.min(1,ratio));
   let min=Math.round(ratio*maxMin);
 
-  // 0mは使わない → 最低1分にする
   if(min < 1) min = 1;
 
   threshold=min*60000;
   localStorage.setItem('threshold',threshold);
   setHandleFromThreshold();
+
+  // ★延長時：現在時間が閾値未満ならダークに戻す
+  const elapsed = getElapsed();
+  if(elapsed < threshold){
+    document.body.classList.remove('light');
+  }
 }
 
 // pointer操作（PC/スマホ対応）
