@@ -33,14 +33,12 @@ button{
 .scale{
   position:relative; height:90%; width:20px; background:#555; border-radius:10px;
   touch-action:none;
-  pointer-events:auto;
 }
 .tick{
   position:absolute; left:100%; margin-left:5px; font-size:10px;
 }
 .handle{
-  position:absolute; left:-5px; width:30px; height:12px; background:#fff; border-radius:6px; cursor:pointer;
-  pointer-events:auto;
+  position:absolute; left:-5px; width:30px; height:10px; background:#fff; border-radius:5px; cursor:pointer;
 }
 </style>
 </head>
@@ -84,34 +82,9 @@ function update(){
   document.getElementById('time').textContent = format(elapsed);
   localStorage.setItem('time', elapsed);
 
-  // ライト状態フラグ管理
   if(elapsed >= threshold){
     document.body.classList.add('light');
   }
-}
-
-// 閾値変更時にダークへ戻す処理を追加
-function updateThresholdFromPos(y){
-  const rect=scale.getBoundingClientRect();
-  let ratio=(rect.bottom-y)/rect.height;
-  ratio=Math.max(0,Math.min(1,ratio));
-  let min=Math.round(ratio*maxMin);
-
-  if(min < 1) min = 1;
-
-  threshold=min*60000;
-  localStorage.setItem('threshold',threshold);
-  setHandleFromThreshold();
-
-  // ★ここが重要：延長したらダークに戻す
-  const currentElapsed = running ? baseElapsed + (now()-startTime) : baseElapsed;
-  if(currentElapsed < threshold){
-    document.body.classList.remove('light');
-  }
-}else{
-    document.body.classList.remove('light');
-  }
-}
 }
 
 function toggle(){
@@ -202,13 +175,8 @@ window.onload=()=>{
 document.addEventListener('contextmenu', e => e.preventDefault());
 
 // スクロール禁止
-// スクロール禁止（最小限）
-document.body.addEventListener('touchmove', e => {
-  if(!e.target.closest('.scale')) e.preventDefault();
-}, { passive:false });
-document.body.addEventListener('wheel', e => {
-  e.preventDefault();
-}, { passive:false });
+document.addEventListener('wheel', e => e.preventDefault(), { passive:false });
+document.addEventListener('touchmove', e => e.preventDefault(), { passive:false });
 
 </script>
 </body>
