@@ -29,7 +29,6 @@ button{
 .ruler{
   position:absolute; right:0; top:0; bottom:0;
   width:70px; display:flex; align-items:center; justify-content:center;
-  pointer-events:none;
 }
 .scale{
   position:relative; height:90%; width:20px; background:#555; border-radius:10px;
@@ -182,8 +181,13 @@ window.onload=()=>{
 document.addEventListener('contextmenu', e => e.preventDefault());
 
 // スクロール禁止
-// スクロール禁止（レイアウトで対応）
-// タッチスクロール禁止（レイアウトで対応）
+// スクロール禁止（最小限）
+document.body.addEventListener('touchmove', e => {
+  if(!e.target.closest('.scale')) e.preventDefault();
+}, { passive:false });
+document.body.addEventListener('wheel', e => {
+  e.preventDefault();
+}, { passive:false });
 
 </script>
 </body>
