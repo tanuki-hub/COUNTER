@@ -82,9 +82,13 @@ function update(){
   document.getElementById('time').textContent = format(elapsed);
   localStorage.setItem('time', elapsed);
 
+  // 閾値に応じてライト/ダーク切替
   if(elapsed >= threshold){
     document.body.classList.add('light');
+  }else{
+    document.body.classList.remove('light');
   }
+}
 }
 
 function toggle(){
