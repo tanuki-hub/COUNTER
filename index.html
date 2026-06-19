@@ -62,7 +62,7 @@ button{
 let running=false;
 let startTime=0;
 let baseElapsed=Number(localStorage.getItem('time'))||0;
-let threshold=Number(localStorage.getItem('threshold'))||300000;
+let threshold=Number(localStorage.getItem('threshold'))||600000;
 
 function now(){ return Date.now(); }
 function getElapsed(){ return running ? baseElapsed + (now()-startTime) : baseElapsed; }
