@@ -62,7 +62,7 @@ button{
 let running=false;
 let startTime=0;
 let baseElapsed=Number(localStorage.getItem('time'))||0;
-let threshold=Number(localStorage.getItem('threshold'))||600000;
+let threshold=Number(localStorage.getItem('threshold'))||300000;
 
 function now(){ return Date.now(); }
 function getElapsed(){ return running ? baseElapsed + (now()-startTime) : baseElapsed; }
@@ -97,7 +97,7 @@ function increment(){ count++; updateCounter(); }
 function decrement(){ count--; updateCounter(); }
 
 function resetAll(){
-  running=false; baseElapsed=0; count=0; threshold=600000;
+  running=false; baseElapsed=0; count=0; threshold=300000;
   localStorage.setItem('time',0);
   localStorage.setItem('count',0);
   localStorage.setItem('threshold',threshold);
